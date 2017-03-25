@@ -1,0 +1,122 @@
+package fulltextsearch.appdaemon;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import fulltextsearch.pojos.InterItem;
+
+public class AppConfig {
+	
+	private static String connectionUrl = "jdbc:sqlserver://10.115.0.161:1433";
+	
+	private static String userName = "sa";
+	
+	private static String password = "1";
+	
+	private static String databaseName = "2017";
+	
+	private static SessionFactory sessionFactory;
+	
+	// query database once return max count 
+	private static int maxResultCount = 100000;
+	
+	// last got item id, should stored in configuration file
+	private static Long lastIndex = 102L;
+	
+	// worker thread sleep time
+	private static Long workerSleepDuration = 10000L;
+	
+	// checker thread sleep time
+	private static Long checkerSleepDuration = 30000L; 
+	
+	// process doc info initial amount
+	private static int docProcessorAmount = 100;
+	
+	
+	public static int getDocProcessorAmount() {
+		return docProcessorAmount;
+	}
+
+	public static Long getCheckerSleepDuration() {
+		return checkerSleepDuration;
+	}
+
+	public static Long getWorkerSleepDuration() {
+		return workerSleepDuration;
+	}
+
+	public static Long getLastIndex() {
+		return lastIndex;
+	}
+
+	public static void setLastIndex(Long lastIndex) {
+		AppConfig.lastIndex = lastIndex;
+	}
+
+	public static int getMaxResultCount() {
+		return maxResultCount;
+	}
+	
+	public static SessionFactory getSessionFactory() {
+		
+		if(sessionFactory == null) {
+			Configuration cfg = createHibernateConfiguration();
+			cfg.addAnnotatedClass(InterItem.class);
+			sessionFactory = cfg.buildSessionFactory();
+		}
+		
+		return sessionFactory;
+	}
+	
+	private static Configuration createHibernateConfiguration() {
+		String url = connectionUrl + ";databaseName=" + databaseName;
+        Configuration cfg = new Configuration()
+				.setProperty("hibernate.connection.driver_class", "com.microsoft.sqlserver.jdbc.SQLServerDriver")
+				.setProperty("hibernate.connection.url", url)
+				.setProperty("hibernate.connection.username", userName)
+				.setProperty("hibernate.connection.password", password)
+				.setProperty("hibernate.connection.autocommit", "true")
+				.setProperty("hibernate.show_sql", "false");
+
+		// Tell Hibernate to use the 'SQL Server' dialect when dynamically
+		// generating SQL queries
+		//cfg.setProperty("hibernate.dialect", "org.hibernate.dialect.SQLServerDialect");
+		cfg.setProperty("hibernate.dialect", "org.hibernate.dialect.SQLServer2008Dialect");
+
+		// Tell Hibernate to show the generated T-SQL
+		cfg.setProperty("hibernate.show_sql", "false");
+
+		// This is ok during development, but not recommended in production
+		// See: http://stackoverflow.com/questions/221379/hibernate-hbm2ddl-auto-update-in-production
+		cfg.setProperty("hibernate.hbm2ddl.auto", "none");
+		return cfg;
+	}
+	
+	public static void loadConfiguration() {
+		Properties properties = new Properties();  
+	    String propFileName = "indexdaemon.properties";
+	    InputStream inputStream = AppConfig.class.getClassLoader()
+	    		.getResourceAsStream(propFileName);
+	    
+	    try {
+	    	properties.load(inputStream);
+			connectionUrl = properties.getProperty("connection.url");
+			userName = properties.getProperty("username");
+			password = properties.getProperty("password");
+			databaseName = properties.getProperty("database.name");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+}
