@@ -22,21 +22,49 @@ public class AppConfig {
 	private static SessionFactory sessionFactory;
 	
 	// query database once return max count 
-	private static int maxResultCount = 100000;
+	private final static int maxResultCount = 100000;
 	
 	// last got item id, should stored in configuration file
 	private static Long lastIndex = 102L;
 	
 	// worker thread sleep time
-	private static Long workerSleepDuration = 10000L;
+	private final static Long workerSleepDuration = 10000L;
 	
 	// checker thread sleep time
-	private static Long checkerSleepDuration = 30000L; 
+	private final static Long checkerSleepDuration = 30000L; 
 	
 	// process doc info initial amount
-	private static int docProcessorAmount = 100;
+	private final static int docProcessorAmount = 100;
+	
+	// FTP client user name
+	private final static String ftpUsername = "admin";
+	
+	// FTP client user password
+	private final static String ftpPassword = "admin";
+	
+	// FTP server address
+	private static String ftpAddress = "10.115.0.161";
+	
+	// FTP server port
+	private static int ftpAddressPort = 21;
 	
 	
+	public static String getFtpAddress() {
+		return ftpAddress;
+	}
+
+	public static int getFtpAddressPort() {
+		return ftpAddressPort;
+	}
+
+	public static String getFtpusername() {
+		return ftpUsername;
+	}
+
+	public static String getFtppassword() {
+		return ftpPassword;
+	}
+
 	public static int getDocProcessorAmount() {
 		return docProcessorAmount;
 	}

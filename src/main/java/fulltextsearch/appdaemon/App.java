@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.quartz.SchedulerException;
 
+import fulltextsearch.data.FtpAndSecret;
 import fulltextsearch.databasemanage.DatabaseManage;
 import fulltextsearch.getjobs.GetJobs;
 import fulltextsearch.indexmanage.IndexManage;
@@ -61,6 +62,12 @@ public class App
         threadDaemonThread.setPriority(Thread.NORM_PRIORITY);
         threadDaemonThread.start();
 		
+        
+        FtpAndSecret ftpClient = new FtpAndSecret();
+        ftpClient.getRawFtpFile("11", "10");
+        
+        
+        
         try {
 			threadDaemonThread.join();
 		} catch (InterruptedException e) {
