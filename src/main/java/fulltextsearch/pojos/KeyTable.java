@@ -1,14 +1,12 @@
 package fulltextsearch.pojos;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Table;
 
-@Entity
+
 @Table(name="SYS_009")
 public class KeyTable {
-	
-	@Column(name="CKEYSTR")
+	@Column(name="CKEYSTR", nullable=false)
 	private String key;
 	
 	@Column(name="ALGORITHM")

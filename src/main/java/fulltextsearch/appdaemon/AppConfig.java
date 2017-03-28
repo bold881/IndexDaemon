@@ -2,13 +2,14 @@ package fulltextsearch.appdaemon;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import fulltextsearch.dao.TableContentDAO;
-import fulltextsearch.dao.TableContentDAOKeyTableImpl;
+import fulltextsearch.dao.DBHelperKeyTable;
 import fulltextsearch.pojos.InterItem;
 import fulltextsearch.pojos.KeyTable;
 
@@ -55,17 +56,45 @@ public class AppConfig {
 	private static String ftpDocumentsDir = "/DE_DOCUMENTS/";
 	
 	// Encrypt and decrypt key for FTP file
-	private static String ftpPrivateKey = null;
+	private volatile static String ftpPrivateKey = null;
+	
+	// supported doc format
+	private static List<String> lstValidDocFormat = null;
 	
 	
-	public static String getFtpPrivateKey() {
-		if(ftpPrivateKey == null) {
-			TableContentDAO<KeyTable> keyTableDao = new TableContentDAOKeyTableImpl<KeyTable>();
-			KeyTable keyTable = keyTableDao.getTableContent().get(0);
-			if(keyTable != null) {
-				ftpPrivateKey = keyTable.getKey();
-			}
+	public static List<String> getLstValidDocFormat() {
+		if(lstValidDocFormat == null) {
+			// probably read from config from properties
+			lstValidDocFormat = new ArrayList<String>();
+			lstValidDocFormat.add("doc");
+			lstValidDocFormat.add("docx");
+			lstValidDocFormat.add("xls");
+			lstValidDocFormat.add("xlsx");
+			lstValidDocFormat.add("ppt");
+			lstValidDocFormat.add("pdf");
+			lstValidDocFormat.add("txt");
 		}
+		
+		return lstValidDocFormat;
+	}
+
+	public static String getConnectionUrl() {
+		return connectionUrl;
+	}
+
+	public static String getUserName() {
+		return userName;
+	}
+
+	public static String getPassword() {
+		return password;
+	}
+
+	public static String getDatabaseName() {
+		return databaseName;
+	}
+
+	public synchronized static String getFtpPrivateKey() {
 		return ftpPrivateKey;
 	}
 
@@ -118,6 +147,7 @@ public class AppConfig {
 		if(sessionFactory == null) {
 			Configuration cfg = createHibernateConfiguration();
 			cfg.addAnnotatedClass(InterItem.class);
+			cfg.addAnnotatedClass(KeyTable.class);
 			sessionFactory = cfg.buildSessionFactory();
 		}
 		
@@ -168,6 +198,13 @@ public class AppConfig {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public static void init() {
+		if(ftpPrivateKey == null) {
+			DBHelperKeyTable dbHelperKeytable = new DBHelperKeyTable();
+			ftpPrivateKey = dbHelperKeytable.getAESPrivateKey();
 		}
 	}
 

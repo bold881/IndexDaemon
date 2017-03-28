@@ -1,6 +1,7 @@
 package fulltextsearch.processdoc;
 
 import fulltextsearch.appdaemon.AppConfig;
+import fulltextsearch.data.FtpAndSecret;
 import fulltextsearch.data.MultiThreadData;
 import fulltextsearch.pojos.InterItem;
 
@@ -10,20 +11,22 @@ public class ProcessDocWorker implements Runnable {
 		while (true) {
 			InterItem interItem = MultiThreadData.dequeueRawItem();
 			if(interItem !=null) {
-				
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				String docFormat = interItem.getDocformat();
+				if(docFormat != null && !docFormat.isEmpty()) {
+					if(AppConfig.getLstValidDocFormat().contains(docFormat)) {
+						FtpAndSecret ftpHelper = new FtpAndSecret();
+						interItem.setObjectInfo(
+								ftpHelper.getFtpFileEncodeBase64(interItem));
+						System.out.print("File processed: " + interItem.getObjectInfo());
+					}
 				}
+				
 				MultiThreadData.addItem(interItem);
 				
 			} else {
 				try {
 					Thread.sleep(AppConfig.getWorkerSleepDuration());
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

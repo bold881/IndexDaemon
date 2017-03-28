@@ -21,7 +21,7 @@ public class TableContentDAOKeyTableImpl<E> implements TableContentDAO<E> {
 		try {
 		    tx = session.beginTransaction();
 		    @SuppressWarnings("rawtypes")
-			Query query = session.createQuery("FROM KeyTable K where K.algorithm = :algorithm");
+			Query query = session.createQuery("FROM KeyTable");
 		    query.setParameter(":algorithm", algorithm);
 		    query.setMaxResults(AppConfig.getMaxResultCount());
 		    

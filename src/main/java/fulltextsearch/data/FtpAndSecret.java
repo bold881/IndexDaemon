@@ -51,17 +51,18 @@ public class FtpAndSecret {
            
             InputStream inputStream = ftpClient.retrieveFileStream(remoteFilePath);
             
-	        byte[] bytesArray = new byte[4096];
-	        int bytesRead = -1;
-	        while ((bytesRead = inputStream.read(bytesArray)) != -1) {
-	            btOutStream.write(bytesArray, 0, bytesRead);
-	        }
- 
-            if (ftpClient.completePendingCommand()) {
-                System.out.println(remoteFilePath + " has been downloaded successfully.");
+            if( inputStream != null ) {
+    	        byte[] bytesArray = new byte[4096];
+    	        int bytesRead = -1;
+    	        while ((bytesRead = inputStream.read(bytesArray)) != -1) {
+    	            btOutStream.write(bytesArray, 0, bytesRead);
+    	        }
+     
+                if (ftpClient.completePendingCommand()) {
+                    System.out.println(remoteFilePath + " has been downloaded successfully.");
+                }
+                inputStream.close();
             }
-            inputStream.close();
- 
         } catch (IOException ex) {
             System.out.println("Error: " + ex.getMessage());
             ex.printStackTrace();

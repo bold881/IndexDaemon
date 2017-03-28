@@ -20,6 +20,9 @@ public class App
 	
     public static void main( String[] args ) throws SchedulerException
     {	
+    	// config init
+    	AppConfig.init();
+    	
     	List<Runnable> lstRunners = new ArrayList<Runnable>();
     	Runnable getJobs = new GetJobs();
     	Runnable indexManage = new IndexManage();
