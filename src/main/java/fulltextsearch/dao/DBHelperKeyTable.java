@@ -15,6 +15,7 @@ public class DBHelperKeyTable extends DBHelper{
 			ResultSet rs = doQuery(querySQL);
 			try {
 				ftpPrivateKey = rs.getString(1);
+				CloseConnection();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

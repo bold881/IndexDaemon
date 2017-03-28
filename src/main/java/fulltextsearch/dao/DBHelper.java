@@ -31,7 +31,7 @@ public class DBHelper {
 		return false;
 	}
 	
-	private void CloseConnection() {
+	protected  void CloseConnection() {
 		try {
 			if(connection != null && !connection.isClosed()) {
 				connection.close();
@@ -54,7 +54,7 @@ public class DBHelper {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			CloseConnection();
+			//CloseConnection();
 		}
 		
 		return resultSet;
