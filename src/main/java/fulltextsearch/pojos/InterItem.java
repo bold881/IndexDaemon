@@ -32,6 +32,17 @@ public class InterItem {
 	@Column(name="op_type")
 	private String op_type;
 	
+	@Column(name="docformat")
+	private String docformat;
+	
+	public String getDocformat() {
+		return docformat;
+	}
+
+	public void setDocformat(String docformat) {
+		this.docformat = docformat;
+	}
+
 	@Transient
 	private String objectInfo;
 

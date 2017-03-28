@@ -7,7 +7,10 @@ import java.util.Properties;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import fulltextsearch.dao.TableContentDAO;
+import fulltextsearch.dao.TableContentDAOKeyTableImpl;
 import fulltextsearch.pojos.InterItem;
+import fulltextsearch.pojos.KeyTable;
 
 public class AppConfig {
 	
@@ -48,7 +51,28 @@ public class AppConfig {
 	// FTP server port
 	private static int ftpAddressPort = 21;
 	
+	// FTP documents directory path
+	private static String ftpDocumentsDir = "/DE_DOCUMENTS/";
 	
+	// Encrypt and decrypt key for FTP file
+	private static String ftpPrivateKey = null;
+	
+	
+	public static String getFtpPrivateKey() {
+		if(ftpPrivateKey == null) {
+			TableContentDAO<KeyTable> keyTableDao = new TableContentDAOKeyTableImpl<KeyTable>();
+			KeyTable keyTable = keyTableDao.getTableContent().get(0);
+			if(keyTable != null) {
+				ftpPrivateKey = keyTable.getKey();
+			}
+		}
+		return ftpPrivateKey;
+	}
+
+	public static String getFtpDocumentsDir() {
+		return ftpDocumentsDir;
+	}
+
 	public static String getFtpAddress() {
 		return ftpAddress;
 	}

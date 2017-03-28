@@ -3,19 +3,40 @@ package fulltextsearch.data;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 
 import fulltextsearch.appdaemon.AppConfig;
+import fulltextsearch.pojos.InterItem;
 
 public class FtpAndSecret {
 	FTPClient ftpClient = null;
 	
-	public byte[] getRawFtpFile(String fileId, String fileVer) {
+	private final String KEY_ALGORITHM = "AES";
+	
+	private final String KEY_TRANSFORMATION = "AES/ECB/PKCS5Padding";
+	
+	public byte[] getRawFtpFile(String fileId, 
+			String fileVer,
+			String docExt) {
  
 		if(ftpClient == null) {
 			ftpClient = new FTPClient();
 		}
+		
+		String remoteFilePath = AppConfig.getFtpDocumentsDir() 
+				+ fileId + "$" + fileVer + "." + docExt;
         
 		ByteArrayOutputStream btOutStream = new ByteArrayOutputStream();
 		
@@ -27,18 +48,8 @@ public class FtpAndSecret {
             
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
- 
-            String remoteFile2 = "/DE_DOCUMENTS/00086$10.dwg";
-//            File downloadFile2 = new File("D:/Downloads/song.mp3");
-//            OutputStream outputStream2 = new BufferedOutputStream(new FileOutputStream(downloadFile2));
-//            InputStream inputStream = ftpClient.retrieveFileStream(remoteFile2);
-//            byte[] bytesArray = new byte[4096];
-//            int bytesRead = -1;
-//            while ((bytesRead = inputStream.read(bytesArray)) != -1) {
-//                outputStream2.write(bytesArray, 0, bytesRead);
-//            }
-            
-            InputStream inputStream = ftpClient.retrieveFileStream(remoteFile2);
+           
+            InputStream inputStream = ftpClient.retrieveFileStream(remoteFilePath);
             
 	        byte[] bytesArray = new byte[4096];
 	        int bytesRead = -1;
@@ -47,7 +58,7 @@ public class FtpAndSecret {
 	        }
  
             if (ftpClient.completePendingCommand()) {
-                System.out.println(remoteFile2 + " has been downloaded successfully.");
+                System.out.println(remoteFilePath + " has been downloaded successfully.");
             }
             inputStream.close();
  
@@ -68,4 +79,45 @@ public class FtpAndSecret {
         return btOutStream.toByteArray();
 	}
 	
+	public byte[] getRawFtpFile(InterItem interItem) {
+		return getRawFtpFile(interItem.getIdPdm(),
+				interItem.getVerPdm(),
+				interItem.getDocformat());
+	}
+	
+	public Key getKey(byte[] keyValue) {
+		Key secretKey = new SecretKeySpec(keyValue, KEY_ALGORITHM);
+		return secretKey;
+	}
+	
+	public byte[] decryptStream(byte[] data, byte[] keyValue) {
+		Key Secretkey = getKey(keyValue);
+		try {
+			Cipher cipher = Cipher.getInstance(KEY_TRANSFORMATION);
+			cipher.init(Cipher.DECRYPT_MODE, Secretkey);
+			return cipher.doFinal(data);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		}	
+		return null;
+	}
+	
+	public byte[] getFtpFile(InterItem interItem) {
+		byte[] rawFile = getRawFtpFile(interItem);
+		byte[] originFile = decryptStream(rawFile, AppConfig.getFtpPrivateKey().getBytes());
+		
+		return originFile;
+	}
+	
+	public String getFtpFileEncodeBase64(InterItem interItem) {
+		return Base64.getEncoder().encodeToString(getFtpFile(interItem));
+	}
 }
