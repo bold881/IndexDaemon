@@ -15,9 +15,11 @@ public class ProcessDocWorker implements Runnable {
 				if(docFormat != null && !docFormat.isEmpty()) {
 					if(AppConfig.getLstValidDocFormat().contains(docFormat)) {
 						FtpAndSecret ftpHelper = new FtpAndSecret();
-						interItem.setObjectInfo(
-								ftpHelper.getFtpFileEncodeBase64(interItem));
-						System.out.print("File processed: " + interItem.getObjectInfo());
+						String encodedObjectInfo = ftpHelper.getFtpFileEncodeBase64(interItem);
+						if(encodedObjectInfo != null && !encodedObjectInfo.isEmpty()) {
+							interItem.setObjectInfo(encodedObjectInfo);
+							System.out.println("File processed: " + interItem.getObjectInfo());
+						}
 					}
 				}
 				

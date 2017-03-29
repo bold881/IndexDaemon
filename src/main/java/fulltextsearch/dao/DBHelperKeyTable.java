@@ -13,7 +13,9 @@ public class DBHelperKeyTable extends DBHelper{
 		if(ftpPrivateKey == null) {
 			String querySQL = "SELECT CKEYSTR FROM SYS_009 WHERE ALGORITHM = 'AES'";
 			ResultSet rs = doQuery(querySQL);
+			
 			try {
+				rs.next();
 				ftpPrivateKey = rs.getString(1);
 				CloseConnection();
 			} catch (SQLException e) {

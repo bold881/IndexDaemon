@@ -3,15 +3,11 @@ package fulltextsearch.data;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.net.ftp.FTP;
@@ -25,7 +21,7 @@ public class FtpAndSecret {
 	
 	private final String KEY_ALGORITHM = "AES";
 	
-	private final String KEY_TRANSFORMATION = "AES/ECB/PKCS5Padding";
+	private final String CIPHER_ALGORITHM = "AES/ECB/PKCS5Padding";
 	
 	public byte[] getRawFtpFile(String fileId, 
 			String fileVer,
@@ -86,39 +82,55 @@ public class FtpAndSecret {
 				interItem.getDocformat());
 	}
 	
-	public Key getKey(byte[] keyValue) {
-		Key secretKey = new SecretKeySpec(keyValue, KEY_ALGORITHM);
+	private byte[] parseHexStr2Byte(String hexStr) {
+    	if (hexStr.length() < 1) {
+	      return null;
+	    }
+	    byte[] result = new byte[hexStr.length() / 2];
+	    for (int i = 0; i < hexStr.length() / 2; i++) {
+	      int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
+	      int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
+	      result[i] = (byte) (high * 16 + low);
+	    }
+	    return result;
+	}
+    
+	private Key toKey(byte[] key) throws Exception {
+		SecretKey secretKey = new SecretKeySpec(key, KEY_ALGORITHM);
 		return secretKey;
 	}
 	
-	public byte[] decryptStream(byte[] data, byte[] keyValue) {
-		Key Secretkey = getKey(keyValue);
+	public byte[] decryptStream(byte[] data, String keyValue) {
+    	//String EKYSTR = "EC902BD04D87D0DBFAFFA7392C5D5E8A";
+    	byte[] encodAndDecodeKey = parseHexStr2Byte(keyValue); 
+    	
 		try {
-			Cipher cipher = Cipher.getInstance(KEY_TRANSFORMATION);
-			cipher.init(Cipher.DECRYPT_MODE, Secretkey);
-			return cipher.doFinal(data);
-		} catch (NoSuchAlgorithmException e) {
+			Key k = toKey(encodAndDecodeKey);
+			Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+		    cipher.init(Cipher.DECRYPT_MODE, k);
+		    byte[] decodedByte = cipher.doFinal(data);
+	    	return decodedByte;
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			e.printStackTrace();
-		} catch (IllegalBlockSizeException e) {
-			e.printStackTrace();
-		} catch (BadPaddingException e) {
-			e.printStackTrace();
-		}	
+		}
 		return null;
 	}
 	
 	public byte[] getFtpFile(InterItem interItem) {
 		byte[] rawFile = getRawFtpFile(interItem);
-		byte[] originFile = decryptStream(rawFile, AppConfig.getFtpPrivateKey().getBytes());
+		if(rawFile == null) {
+			return null;
+		}
+		byte[] originFile = decryptStream(rawFile, AppConfig.getFtpPrivateKey());
 		
 		return originFile;
 	}
 	
 	public String getFtpFileEncodeBase64(InterItem interItem) {
-		return Base64.getEncoder().encodeToString(getFtpFile(interItem));
+		byte[] orginFile = getFtpFile(interItem);
+		if(orginFile == null) {
+			return "";
+		}
+		return Base64.getEncoder().encodeToString(orginFile);
 	}
 }
