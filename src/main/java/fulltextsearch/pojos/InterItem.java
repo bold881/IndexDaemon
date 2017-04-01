@@ -10,6 +10,7 @@ import javax.persistence.Transient;
 @Entity
 @Table(name="fulltext_intertable")
 public class InterItem {
+	
 	@Id @GeneratedValue
 	@Column(name="id")
 	private Long id;
@@ -35,6 +36,9 @@ public class InterItem {
 	@Column(name="docformat")
 	private String docformat;
 	
+	@Transient
+	private String objectInfo;
+	
 	public String getDocformat() {
 		return docformat;
 	}
@@ -42,9 +46,6 @@ public class InterItem {
 	public void setDocformat(String docformat) {
 		this.docformat = docformat;
 	}
-
-	@Transient
-	private String objectInfo;
 
 	public String getObjectInfo() {
 		return objectInfo;

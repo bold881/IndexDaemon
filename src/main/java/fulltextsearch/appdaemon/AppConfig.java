@@ -2,10 +2,16 @@ package fulltextsearch.appdaemon;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -34,11 +40,17 @@ public class AppConfig {
 	// worker thread sleep time
 	private final static Long workerSleepDuration = 10000L;
 	
+	// worker thread minimal sleep time
+	private final static Long workerMiniSleepDuration = 200L;
+
 	// checker thread sleep time
 	private final static Long checkerSleepDuration = 30000L; 
 	
 	// process doc info initial amount
-	private final static int docProcessorAmount = 100;
+	private final static int docProcessorAmount = 10;
+	
+	// index manage worker initial amount
+	private final static int indexManageAmout = 100;
 	
 	// FTP client user name
 	private final static String ftpUsername = "admin";
@@ -61,7 +73,58 @@ public class AppConfig {
 	// supported doc format
 	private static List<String> lstValidDocFormat = null;
 	
+	// elasticsearch client 
+	private static TransportClient esClient = null;
 	
+	// elasticsearch cluster name
+	private final static String esClusterName = "yonyouplm";
+	
+	// elasticsearch server ip address
+	private final static String esServerIPAddr = "10.115.0.134";
+	
+	// elasticsearch 
+	private final static int esServerClientPort = 9300;
+	
+	// elasticsearch index name
+	private final static String esIndexName = "plmfulltext";
+	
+	
+	
+	
+	
+	
+	
+	public static synchronized int getEsserverclientport() {
+		return esServerClientPort;
+	}
+
+	public static synchronized String getEsindexname() {
+		return esIndexName;
+	}
+
+	public static synchronized String getEsclustername() {
+		return esClusterName;
+	}
+
+	public static synchronized String getEsserveripaddr() {
+		return esServerIPAddr;
+	}
+
+	public static synchronized TransportClient getEsClient() {
+		if(esClient == null) {
+			esClientInit();
+		}
+		return esClient;
+	}
+
+	public static int getIndexmanageamout() {
+		return indexManageAmout;
+	}
+
+	public static Long getWorkerminisleepduration() {
+		return workerMiniSleepDuration;
+	}
+
 	public static List<String> getLstValidDocFormat() {
 		if(lstValidDocFormat == null) {
 			// probably read from config from properties
@@ -94,7 +157,7 @@ public class AppConfig {
 		return databaseName;
 	}
 
-	public synchronized static String getFtpPrivateKey() {
+	public synchronized static String getFtpPrivateKey() {	
 		return ftpPrivateKey;
 	}
 
@@ -205,6 +268,31 @@ public class AppConfig {
 		if(ftpPrivateKey == null) {
 			DBHelperKeyTable dbHelperKeytable = new DBHelperKeyTable();
 			ftpPrivateKey = dbHelperKeytable.getAESPrivateKey();
+		}
+	}
+	
+	@SuppressWarnings({ "resource", "unchecked" })
+	private static void esClientInit() {
+		if(esClient != null) {
+			return;
+		}
+		Settings settings = Settings.builder()
+				.put("cluster.name", getEsclustername()).build();
+				
+		try {
+			esClient = new PreBuiltTransportClient(settings)
+					.addTransportAddress(new InetSocketTransportAddress(
+							InetAddress.getByName(getEsserveripaddr()), 
+							getEsserverclientport()));
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static void shutdown() {
+		if(esClient != null) {
+			esClient.close();
 		}
 	}
 

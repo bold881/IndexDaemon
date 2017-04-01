@@ -118,9 +118,11 @@ public class FtpAndSecret {
 	
 	public byte[] getFtpFile(InterItem interItem) {
 		byte[] rawFile = getRawFtpFile(interItem);
-		if(rawFile == null) {
+		
+		if(rawFile == null || rawFile.length == 0) {
 			return null;
 		}
+		
 		byte[] originFile = decryptStream(rawFile, AppConfig.getFtpPrivateKey());
 		
 		return originFile;

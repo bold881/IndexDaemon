@@ -70,6 +70,8 @@ public class App
 			e.printStackTrace();
 		}
        
+        AppConfig.shutdown();
+        
         System.out.println("App over!!!");
     }
 }
