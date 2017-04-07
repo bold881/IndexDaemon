@@ -12,7 +12,9 @@ public class ProcessDocWorker implements Runnable {
 			InterItem interItem = MultiThreadData.dequeueRawItem();
 			if(interItem !=null) {
 				String docFormat = interItem.getDocformat();
-				if(docFormat != null && !docFormat.isEmpty()) {
+				if(docFormat != null 
+						&& !docFormat.isEmpty()
+						&& AppConfig.isStartDocAttachProcess()) {
 					if(AppConfig.getLstValidDocFormat().contains(docFormat)) {
 						FtpAndSecret ftpHelper = new FtpAndSecret();
 						// using Elasticsearch to extract file content need string Base64 encoded

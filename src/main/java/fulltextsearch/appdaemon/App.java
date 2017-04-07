@@ -23,6 +23,10 @@ public class App
     	// config init
     	AppConfig.init();
     	
+    	if(!AppConfig.isStartFullText()) {
+    		return;
+    	}
+    	
     	List<Runnable> lstRunners = new ArrayList<Runnable>();
     	Runnable getJobs = new GetJobs();
     	Runnable indexManage = new IndexManage();

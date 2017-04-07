@@ -15,7 +15,9 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import fulltextsearch.dao.DBHelperConfigTable;
 import fulltextsearch.dao.DBHelperKeyTable;
+import fulltextsearch.pojos.ConfigCollection;
 import fulltextsearch.pojos.InterItem;
 import fulltextsearch.pojos.KeyTable;
 
@@ -41,16 +43,16 @@ public class AppConfig {
 	private final static Long workerSleepDuration = 10000L;
 	
 	// worker thread minimal sleep time
-	private final static Long workerMiniSleepDuration = 200L;
+	private final static Long workerMiniSleepDuration = 0L;
 
 	// checker thread sleep time
 	private final static Long checkerSleepDuration = 30000L; 
 	
 	// process doc info initial amount
-	private final static int docProcessorAmount = 10;
+	private final static int docProcessorAmount = 30;
 	
 	// index manage worker initial amount
-	private final static int indexManageAmout = 100;
+	private final static int indexManageAmout = 1;
 	
 	// FTP client user name
 	private final static String ftpUsername = "admin";
@@ -88,12 +90,31 @@ public class AppConfig {
 	// elasticsearch index name
 	private final static String esIndexName = "plmfulltext";
 	
+	// Index bulk size
+	private final static int indexBulkSize = 100;
+	
+	// Start full text process
+	private static boolean startFullText = true;
+	
+	// Start doc attachment process 
+	private static boolean startDocAttachProcess = true;
 	
 	
 	
 	
 	
-	
+	public static boolean isStartFullText() {
+		return startFullText;
+	}
+
+	public static boolean isStartDocAttachProcess() {
+		return startDocAttachProcess;
+	}
+
+	public static int getIndexbulksize() {
+		return indexBulkSize;
+	}
+
 	public static synchronized int getEsserverclientport() {
 		return esServerClientPort;
 	}
@@ -268,6 +289,13 @@ public class AppConfig {
 		if(ftpPrivateKey == null) {
 			DBHelperKeyTable dbHelperKeytable = new DBHelperKeyTable();
 			ftpPrivateKey = dbHelperKeytable.getAESPrivateKey();
+		}
+		
+		DBHelperConfigTable config = new DBHelperConfigTable();
+		ConfigCollection configCollection = config.getFromConfigTable();
+		if( configCollection != null) {
+			startFullText = configCollection.isStartFulltext();
+			startDocAttachProcess = configCollection.isStartDocProcess(); 
 		}
 	}
 	
