@@ -1,7 +1,7 @@
 package fulltextsearch.appdaemon;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -23,6 +23,8 @@ import fulltextsearch.pojos.KeyTable;
 
 public class AppConfig {
 	
+	private static final String propertiesFile = "src/main/resources/plmfulltextservice.properties";
+	
 	private static String connectionUrl = "jdbc:sqlserver://10.115.0.161:1433";
 	
 	private static String userName = "sa";
@@ -31,34 +33,32 @@ public class AppConfig {
 	
 	private static String databaseName = "2017";
 	
-	private static SessionFactory sessionFactory;
-	
 	// query database once return max count 
-	private final static int maxResultCount = 100000;
+	private static int maxResultCount = 100000;
 	
 	// last got item id, should stored in configuration file
 	private static Long lastIndex = 102L;
 	
 	// worker thread sleep time
-	private final static Long workerSleepDuration = 10000L;
+	private static Long workerSleepDuration = 10000L;
 	
 	// worker thread minimal sleep time
-	private final static Long workerMiniSleepDuration = 0L;
+	private static Long workerMiniSleepDuration = 0L;
 
 	// checker thread sleep time
-	private final static Long checkerSleepDuration = 30000L; 
+	private static Long checkerSleepDuration = 30000L; 
 	
 	// process doc info initial amount
-	private final static int docProcessorAmount = 30;
+	private static int docProcessorAmount = 30;
 	
 	// index manage worker initial amount
-	private final static int indexManageAmout = 1;
+	private static int indexManageAmout = 1;
 	
 	// FTP client user name
-	private final static String ftpUsername = "admin";
+	private static String ftpUsername = "admin";
 	
 	// FTP client user password
-	private final static String ftpPassword = "admin";
+	private static String ftpPassword = "admin";
 	
 	// FTP server address
 	private static String ftpAddress = "10.115.0.161";
@@ -69,6 +69,29 @@ public class AppConfig {
 	// FTP documents directory path
 	private static String ftpDocumentsDir = "/DE_DOCUMENTS/";
 	
+	// elasticsearch cluster name
+	private static String esClusterName = "yonyouplm";
+	
+	// elasticsearch server ip address
+	private static String esServerIPAddr = "0.0.0.0";
+	
+	// elasticsearch 
+	private static int esServerClientPort = 9300;
+	
+	// elasticsearch index name
+	private static String esIndexName = "plmfulltext";
+	
+	// Index bulk size
+	private static int indexBulkSize = 100;
+	
+	// Start full text process
+	private static boolean startFullText = true;
+	
+	// Start doc attachment process 
+	private static boolean startDocAttachProcess = true;
+	
+	private static SessionFactory sessionFactory;
+	
 	// Encrypt and decrypt key for FTP file
 	private volatile static String ftpPrivateKey = null;
 	
@@ -77,28 +100,6 @@ public class AppConfig {
 	
 	// elasticsearch client 
 	private static TransportClient esClient = null;
-	
-	// elasticsearch cluster name
-	private final static String esClusterName = "yonyouplm";
-	
-	// elasticsearch server ip address
-	private final static String esServerIPAddr = "10.115.0.134";
-	
-	// elasticsearch 
-	private final static int esServerClientPort = 9300;
-	
-	// elasticsearch index name
-	private final static String esIndexName = "plmfulltext";
-	
-	// Index bulk size
-	private final static int indexBulkSize = 100;
-	
-	// Start full text process
-	private static boolean startFullText = true;
-	
-	// Start doc attachment process 
-	private static boolean startDocAttachProcess = true;
-	
 	
 	
 	
@@ -147,18 +148,6 @@ public class AppConfig {
 	}
 
 	public static List<String> getLstValidDocFormat() {
-		if(lstValidDocFormat == null) {
-			// probably read from config from properties
-			lstValidDocFormat = new ArrayList<String>();
-			lstValidDocFormat.add("doc");
-			lstValidDocFormat.add("docx");
-			lstValidDocFormat.add("xls");
-			lstValidDocFormat.add("xlsx");
-			lstValidDocFormat.add("ppt");
-			lstValidDocFormat.add("pdf");
-			lstValidDocFormat.add("txt");
-		}
-		
 		return lstValidDocFormat;
 	}
 
@@ -262,30 +251,9 @@ public class AppConfig {
 		return cfg;
 	}
 	
-	public static void loadConfiguration() {
-		Properties properties = new Properties();  
-	    String propFileName = "indexdaemon.properties";
-	    InputStream inputStream = AppConfig.class.getClassLoader()
-	    		.getResourceAsStream(propFileName);
-	    
-	    try {
-	    	properties.load(inputStream);
-			connectionUrl = properties.getProperty("connection.url");
-			userName = properties.getProperty("username");
-			password = properties.getProperty("password");
-			databaseName = properties.getProperty("database.name");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				inputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	public static void init() {
+		
+		// ftp encrypt decrypt key
 		if(ftpPrivateKey == null) {
 			DBHelperKeyTable dbHelperKeytable = new DBHelperKeyTable();
 			ftpPrivateKey = dbHelperKeytable.getAESPrivateKey();
@@ -297,6 +265,8 @@ public class AppConfig {
 			startFullText = configCollection.isStartFulltext();
 			startDocAttachProcess = configCollection.isStartDocProcess(); 
 		}
+		
+		loadConfiguration();
 	}
 	
 	@SuppressWarnings({ "resource", "unchecked" })
@@ -321,6 +291,57 @@ public class AppConfig {
 	public static void shutdown() {
 		if(esClient != null) {
 			esClient.close();
+		}
+	}
+	
+	public static void loadConfiguration() {
+		Properties properties = new Properties();
+		try {
+			FileInputStream fileInputStream = new FileInputStream(propertiesFile);
+			properties.load(fileInputStream);
+			fileInputStream.close();
+			connectionUrl = properties.getProperty("connectionUrl");
+			userName = properties.getProperty("userName");
+			password = properties.getProperty("password");
+			databaseName = properties.getProperty("databaseName");
+			maxResultCount = 
+					Integer.parseInt(properties.getProperty("maxResultCount"));
+			lastIndex = Long.parseLong(properties.getProperty("lastIndex"));
+			workerSleepDuration = 
+					Long.parseLong(properties.getProperty("workerSleepDuration"));
+			workerMiniSleepDuration = 
+					Long.parseLong(properties.getProperty("workerMiniSleepDuration"));
+			checkerSleepDuration = 
+					Long.parseLong(properties.getProperty("checkerSleepDuration"));
+			docProcessorAmount = 
+					Integer.parseInt(properties.getProperty("docProcessorAmount"));
+			indexManageAmout = 
+					Integer.parseInt(properties.getProperty("indexManageAmout"));
+			ftpUsername = properties.getProperty("ftpUsername");
+			ftpPassword = properties.getProperty("ftpPassword");
+			ftpAddress = properties.getProperty("ftpAddress");
+			ftpAddressPort = Integer.parseInt(properties.getProperty("ftpAddressPort"));
+			ftpDocumentsDir = properties.getProperty("ftpDocumentsDir");
+			esClusterName = properties.getProperty("esClusterName");
+			esServerIPAddr = properties.getProperty("esServerIPAddr");
+			esServerClientPort = 
+					Integer.parseInt(properties.getProperty("esServerClientPort"));
+			esIndexName = properties.getProperty("esIndexName");
+			indexBulkSize = 
+					Integer.parseInt(properties.getProperty("indexBulkSize"));
+			
+			String validDocFormat = properties.getProperty("docformat");
+			if(lstValidDocFormat == null) {
+				lstValidDocFormat = new ArrayList<String>();
+			}
+			if(validDocFormat!=null) {
+				String[] formats = validDocFormat.split(",");
+				for(String format: formats) {
+					lstValidDocFormat.add(format);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
