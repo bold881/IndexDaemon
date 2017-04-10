@@ -41,8 +41,9 @@ public class ProcessDocWorker implements Runnable {
 				}
 				
 			} else {
+				// suspend when dequeued null
 				try {
-					Thread.sleep(AppConfig.getWorkerSleepDuration());
+					this.wait();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

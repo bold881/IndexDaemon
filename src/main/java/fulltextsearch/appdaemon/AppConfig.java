@@ -1,7 +1,11 @@
 package fulltextsearch.appdaemon;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -38,6 +42,9 @@ public class AppConfig {
 	
 	// last got item id, should stored in configuration file
 	private static Long lastIndex = 102L;
+	
+	// last processed index ID
+	private static Long lastIndexed = -1L;
 	
 	// worker thread sleep time
 	private static Long workerSleepDuration = 10000L;
@@ -104,6 +111,14 @@ public class AppConfig {
 	
 	
 	
+	public static Long getLastIndexed() {
+		return lastIndexed;
+	}
+
+	public static void setLastIndexed(Long lastIndexed) {
+		AppConfig.lastIndexed = lastIndexed;
+	}
+
 	public static boolean isStartFullText() {
 		return startFullText;
 	}
@@ -343,6 +358,33 @@ public class AppConfig {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	// save configuration to properties file
+	public static boolean saveConfigtoFile(String key, String value) {
+		
+		try {
+			InputStream inputStream = new FileInputStream(propertiesFile);
+			Properties properties = new Properties();
+			properties.load(inputStream);
+			inputStream.close();
+			OutputStream outputStream  = new FileOutputStream(propertiesFile);
+			properties.setProperty(key, value);
+			properties.store(outputStream, null);
+			outputStream.close();
+			System.out.println("Svaing configuration: " + key + " " + value);
+			return true;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	// save last indexed to file
+	public static boolean saveLastIndexedtoFile() {
+		return saveConfigtoFile("lastIndex", lastIndexed.toString());
 	}
 
 }

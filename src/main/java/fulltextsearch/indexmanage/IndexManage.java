@@ -52,6 +52,10 @@ public class IndexManage implements Runnable {
 			System.out.println("Clean Queue Size: " + MultiThreadData.getItemQueue().size());
 			
 			
+			if(!AppConfig.saveLastIndexedtoFile()) {
+				System.out.println("Save index count to file failed");
+			}
+			
 			try {
 				Thread.sleep(AppConfig.getCheckerSleepDuration());
 			} catch (InterruptedException e) {

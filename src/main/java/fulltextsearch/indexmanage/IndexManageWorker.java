@@ -77,6 +77,8 @@ public class IndexManageWorker implements Runnable {
 							itemID)
 							.setSource(interItem2String(interItem)));
 				}
+				// update indexed ID
+				updateLastIndex(interItem.getId());
 			}
 			
 			if(bulkRequest!=null && bulkRequest.numberOfActions() > 0) {
@@ -115,5 +117,16 @@ public class IndexManageWorker implements Runnable {
 		json.put("objectinfo", interItem.getObjectInfo());
 		return json;
 	}
-
+	
+	public void updateLastIndex(InterItem interItem) {
+		if(AppConfig.getLastIndexed() < interItem.getId()) {
+			AppConfig.setLastIndexed(interItem.getId());
+		}
+	}
+	
+	public void updateLastIndex(Long indexId) {
+		if(AppConfig.getLastIndexed() < indexId) {
+			AppConfig.setLastIndexed(indexId);
+		}
+	}
 }

@@ -54,6 +54,9 @@ public class ProcessDoc implements Runnable {
 			// need to check whether add or remove worker from list
 			
 			
+			
+			
+			
 			try {
 				Thread.sleep(AppConfig.getCheckerSleepDuration());
 			} catch (InterruptedException e) {
