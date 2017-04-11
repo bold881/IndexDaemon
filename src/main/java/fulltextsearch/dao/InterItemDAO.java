@@ -8,4 +8,5 @@ public interface InterItemDAO {
 	
 	public List<InterItem> getLatestInterItem(Long lastIndex);
 	
+	public int deleteAllItems();
 }

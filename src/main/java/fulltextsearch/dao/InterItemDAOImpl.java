@@ -38,4 +38,16 @@ public class InterItemDAOImpl implements InterItemDAO {
 		return interItems;
 	}
 
+	public int deleteAllItems() {
+		int affectedRow = 0;
+		Session session = AppConfig.getSessionFactory().openSession();
+		Transaction tx = null;
+		tx = session.beginTransaction();
+		if(tx != null) {
+			affectedRow = session.createQuery("DELETE FROM InterItem").executeUpdate();
+			tx.commit();
+		}
+		session.close();
+		return affectedRow;
+	}
 }

@@ -18,9 +18,14 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
 
 import fulltextsearch.dao.DBHelperConfigTable;
 import fulltextsearch.dao.DBHelperKeyTable;
+import fulltextsearch.getjobs.GetJobsWorker;
 import fulltextsearch.pojos.ConfigCollection;
 import fulltextsearch.pojos.InterItem;
 import fulltextsearch.pojos.KeyTable;
@@ -91,6 +96,9 @@ public class AppConfig {
 	// Index bulk size
 	private static int indexBulkSize = 100;
 	
+	// max db table identity
+	private static Long maxDbId = 1000000000L;
+	
 	// Start full text process
 	private static boolean startFullText = true;
 	
@@ -108,9 +116,33 @@ public class AppConfig {
 	// elasticsearch client 
 	private static TransportClient esClient = null;
 	
+	// Quartz scheduler
+	private static Scheduler scheduler = null;
+	
+	// get jobs worker
+	public static List<GetJobsWorker> getJobsWorkerThreads = null;
 	
 	
 	
+	
+	public static Long getMaxDbId() {
+		return maxDbId;
+	}
+
+	public static Scheduler getScheduler() {
+		
+		if(scheduler == null) {
+			SchedulerFactory sFactory = new StdSchedulerFactory();
+			try {
+				scheduler = sFactory.getScheduler();
+				scheduler.start();
+			} catch (SchedulerException e) {
+				e.printStackTrace();
+			}
+		}
+		return scheduler;
+	}
+
 	public static Long getLastIndexed() {
 		return lastIndexed;
 	}
@@ -304,6 +336,18 @@ public class AppConfig {
 	}
 	
 	public static void shutdown() {
+
+		// quartz shutting down
+		if(scheduler != null) {
+			try {
+				scheduler.shutdown();
+			} catch (SchedulerException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		// close ES client
 		if(esClient != null) {
 			esClient.close();
 		}
@@ -344,6 +388,7 @@ public class AppConfig {
 			esIndexName = properties.getProperty("esIndexName");
 			indexBulkSize = 
 					Integer.parseInt(properties.getProperty("indexBulkSize"));
+			maxDbId = Long.parseLong(properties.getProperty("maxDbId"));
 			
 			String validDocFormat = properties.getProperty("docformat");
 			if(lstValidDocFormat == null) {
@@ -384,7 +429,30 @@ public class AppConfig {
 	
 	// save last indexed to file
 	public static boolean saveLastIndexedtoFile() {
+		if(lastIndexed == -1) {
+			return true;
+		}
 		return saveConfigtoFile("lastIndex", lastIndexed.toString());
 	}
 
+	// to check whether index exceded the maxDbId
+	public static boolean dbIDCheck() {
+		if(lastIndex > maxDbId || lastIndexed > maxDbId) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static void suspendGetJobsThreads() {
+		for(GetJobsWorker worker: getJobsWorkerThreads) {
+			worker.setHasTasks(false);
+		}
+	}
+	
+	public static void resumeGetJobsThreads() {
+		for(GetJobsWorker worker: getJobsWorkerThreads) {
+			worker.workerResume();
+		}
+	}
+	
 }

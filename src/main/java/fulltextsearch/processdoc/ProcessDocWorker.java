@@ -6,6 +6,18 @@ import fulltextsearch.data.MultiThreadData;
 import fulltextsearch.pojos.InterItem;
 
 public class ProcessDocWorker implements Runnable {
+	
+	private Thread thread;
+	
+	private boolean hasTasks;
+	
+	public ProcessDocWorker() {
+		
+		hasTasks = true;
+		thread = new Thread(this);
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
+	}
 
 	public void run() {
 		while (true) {
@@ -42,12 +54,41 @@ public class ProcessDocWorker implements Runnable {
 				
 			} else {
 				// suspend when dequeued null
-				try {
-					this.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				hasTasks = false;
+				synchronized (this) {
+					while(!hasTasks) {
+						try {
+							wait();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		}
+	}
+	
+	public boolean isAlive() {
+		if(this.thread == null) {
+			return false;
+		}
+		return this.thread.isAlive();
+	}
+	
+	public String getName() {
+		return this.thread.getName();
+	}
+
+	public boolean isHasTasks() {
+		return hasTasks;
+	}
+
+	public void setHasTasks(boolean hasTasks) {
+		this.hasTasks = hasTasks;
+	}
+	
+	public void workerResume() {
+		this.hasTasks = true;
+		this.notify();
 	}
 }

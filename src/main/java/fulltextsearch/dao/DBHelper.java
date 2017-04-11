@@ -35,6 +35,7 @@ public class DBHelper {
 		try {
 			if(connection != null && !connection.isClosed()) {
 				connection.close();
+				connection = null;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -58,5 +59,19 @@ public class DBHelper {
 		}
 		
 		return resultSet;
+	}
+	
+	protected void doUpdate(String query) {
+		
+		if(GetConnection()) {
+			Statement statement;
+			try {
+				statement = connection.createStatement();
+				statement.executeUpdate(query);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			CloseConnection();
+		}
 	}
 }

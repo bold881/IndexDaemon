@@ -8,26 +8,22 @@ import fulltextsearch.data.MultiThreadData;
 
 public class ProcessDoc implements Runnable {
 	
-	private List<Thread> lstWorkers = null;
+	private List<ProcessDocWorker> lstWorkers = null;
 
 	public void run() {
 		if(lstWorkers == null) {
-			lstWorkers = new ArrayList<Thread>();
+			lstWorkers = new ArrayList<ProcessDocWorker>();
 		}
 		
-		ProcessDocWorker docWorker = new ProcessDocWorker();
-		
 		for(int i=0; i<AppConfig.getDocProcessorAmount(); i++) {
-			Thread thread = new Thread(docWorker);
-			thread.setPriority(Thread.MIN_PRIORITY);
-			thread.start();
-			lstWorkers.add(thread);
+			ProcessDocWorker docWorker = new ProcessDocWorker();
+			lstWorkers.add(docWorker);
 		}
 		
 		while(true) {
 			
-			List<Thread> badThreads = new ArrayList<Thread>();
-			for(Thread worker : lstWorkers) {
+			List<ProcessDocWorker> badThreads = new ArrayList<ProcessDocWorker>();
+			for(ProcessDocWorker worker : lstWorkers) {
 				if(!worker.isAlive()) {
 					badThreads.add(worker);
 					System.out.println("ProcessDoc: " + worker.getName() + " stopped.");
@@ -37,26 +33,28 @@ public class ProcessDoc implements Runnable {
 			}
 			
 			// remove bad thread from list
-			for(Thread badThread : badThreads) {
+			for(ProcessDocWorker badThread : badThreads) {
 				lstWorkers.remove(badThread);
 				System.out.println("ProcessDoc: " + badThread.getName() + " removed.");
 				
-				Thread workerNew = new Thread(docWorker);
-				workerNew.setPriority(Thread.MIN_PRIORITY);
-				workerNew.start();
+				ProcessDocWorker workerNew = new ProcessDocWorker();
 				lstWorkers.add(workerNew);
 				System.out.println("ProcessDoc: " + workerNew.getName() + " added.");
+			}
+			
+			// wake up thread on condintion of new tasks
+			if(MultiThreadData.getRawItemQueue().size() > 0) {
+				for(ProcessDocWorker worker : lstWorkers) {
+					if(!worker.isHasTasks()) {
+						worker.workerResume();
+					}
+				}
 			}
 			
 			
 			System.out.println("Clean Queue Size: " + MultiThreadData.getItemQueue().size());
 			System.out.println("Raw Queue Size: " + MultiThreadData.getRawItemQueue().size());
-			// need to check whether add or remove worker from list
-			
-			
-			
-			
-			
+					
 			try {
 				Thread.sleep(AppConfig.getCheckerSleepDuration());
 			} catch (InterruptedException e) {
