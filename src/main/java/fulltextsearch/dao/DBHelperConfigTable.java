@@ -3,6 +3,8 @@ package fulltextsearch.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import fulltextsearch.appdaemon.AppConfig;
+import fulltextsearch.data.DES;
 import fulltextsearch.pojos.ConfigCollection;
 
 public class DBHelperConfigTable extends DBHelper {
@@ -45,4 +47,24 @@ public class DBHelperConfigTable extends DBHelper {
 		}
 		return config;
 	} 
+	
+	
+	public void getFtpConfiguration() {
+		// SYS_013
+		String querySQL = "SELECT CSEVERIP, CUSERNAME, CPASSWORD, CPORT FROM SYS_013";
+		ResultSet rs = doQuery(querySQL);
+		
+		try {
+			rs.next(); 
+			AppConfig.ftpAddress = rs.getString(1);
+			AppConfig.ftpUsername = rs.getString(2);
+			String ftpPassword = rs.getString(3);
+			AppConfig.ftpPassword = DES.DecryptString(ftpPassword);
+			AppConfig.ftpAddressPort = Integer.parseInt(rs.getString(4));
+			
+			CloseConnection();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 }

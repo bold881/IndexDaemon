@@ -1,15 +1,20 @@
 package fulltextsearch.processdoc;
 
+import java.util.List;
+
 import fulltextsearch.appdaemon.AppConfig;
 import fulltextsearch.data.FtpAndSecret;
 import fulltextsearch.data.MultiThreadData;
 import fulltextsearch.pojos.InterItem;
+import fulltextsearch.pojos.ObjectItem;
 
 public class ProcessDocWorker implements Runnable {
 	
 	private Thread thread;
 	
 	private boolean hasTasks;
+	
+	private static final String ECR = "ECR";
 	
 	public ProcessDocWorker() {
 		
@@ -18,28 +23,47 @@ public class ProcessDocWorker implements Runnable {
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
+	
+	private void doTikaParse(byte[] originFile,
+			InterItem interItem) {
+		if(originFile!=null) {
+			TikaParser parser = new TikaParser();
+			String content = parser.autoParse(originFile);
+			if(content != null) {
+				interItem.setObjectInfo(content);
+				System.out.println("File processed--- ID:" 
+						+ interItem.getIdPdm() + " Version:" +interItem.getVerPdm());
+			}
+		}
+	}
+	
 
 	public void run() {
 		while (true) {
 			InterItem interItem = MultiThreadData.dequeueRawItem();
 			if(interItem !=null) {
-				String docFormat = interItem.getDocformat();
-				if(docFormat != null 
-						&& !docFormat.isEmpty()
-						&& AppConfig.isStartDocAttachProcess()) {
-					if(AppConfig.getLstValidDocFormat().contains(docFormat)) {
-						FtpAndSecret ftpHelper = new FtpAndSecret();
-						// using Elasticsearch to extract file content need string Base64 encoded
-						// String encodedObjectInfo = ftpHelper.getFtpFileEncodeBase64(interItem);
-						// using Tika extract file content locally
-						byte[] originFile = ftpHelper.getFtpFile(interItem);
-						if(originFile!=null) {
-							TikaParser parser = new TikaParser();
-							String content = parser.autoParse(originFile);
-							if(content != null) {
-								interItem.setObjectInfo(content);
-								System.out.println("File processed--- ID:" 
-										+ interItem.getIdPdm() + " Version:" +interItem.getVerPdm());
+				if(AppConfig.isStartDocAttachProcess()) {
+					
+					// normal doc
+					String docFormat = interItem.getDocformat();
+					if(docFormat != null && !docFormat.isEmpty()) {
+						if(AppConfig.getLstValidDocFormat().contains(docFormat)) {
+							FtpAndSecret ftpHelper = new FtpAndSecret();
+							// using Tika extract file content locally
+							byte[] originFile = ftpHelper.getFtpFile(interItem);
+							doTikaParse(originFile, interItem);
+						}
+					}
+					
+					// ECR
+					if(interItem.getItemType() == ECR) {
+						String objectInfo = interItem.getObject();
+						List<ObjectItem> objects = ObjectInfo.getObjects(objectInfo);
+						if(objects!=null && !objects.isEmpty()) {
+							FtpAndSecret ftpHelper = new FtpAndSecret();
+							for(ObjectItem item : objects) {	
+								byte[] originFile = ftpHelper.getFtpFile(item);
+								doTikaParse(originFile, interItem);
 							}
 						}
 					}

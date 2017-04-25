@@ -20,6 +20,12 @@ public class App
 	
     public static void main( String[] args ) throws SchedulerException
     {	
+    	if(args.length > 0) {
+    		String propertiesFile = args[0];
+        	if(propertiesFile!=null && !propertiesFile.isEmpty()) {
+        		AppConfig.setPropertiesFile(propertiesFile);
+        	}
+    	}
     	// config init
     	AppConfig.init();
     	

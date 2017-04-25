@@ -52,7 +52,7 @@ public class InterItem {
 	}
 	
 	public void setObjectInfo(String objectInfo) {
-		this.objectInfo = objectInfo;
+		this.objectInfo += objectInfo;
 	}
 
 	public long getId() {

@@ -15,6 +15,7 @@ import org.apache.commons.net.ftp.FTPClient;
 
 import fulltextsearch.appdaemon.AppConfig;
 import fulltextsearch.pojos.InterItem;
+import fulltextsearch.pojos.ObjectItem;
 
 public class FtpAndSecret {
 	FTPClient ftpClient = null;
@@ -82,6 +83,12 @@ public class FtpAndSecret {
 				interItem.getDocformat());
 	}
 	
+	public byte[] getRawFtpFile(ObjectItem interItem) {
+		return getRawFtpFile(interItem.getId(),
+				interItem.getVer(),
+				interItem.getFormat());
+	}
+	
 	private byte[] parseHexStr2Byte(String hexStr) {
     	if (hexStr.length() < 1) {
 	      return null;
@@ -117,6 +124,18 @@ public class FtpAndSecret {
 	}
 	
 	public byte[] getFtpFile(InterItem interItem) {
+		byte[] rawFile = getRawFtpFile(interItem);
+		
+		if(rawFile == null || rawFile.length == 0) {
+			return null;
+		}
+		
+		byte[] originFile = decryptStream(rawFile, AppConfig.getFtpPrivateKey());
+		
+		return originFile;
+	}
+	
+	public byte[] getFtpFile(ObjectItem interItem) {
 		byte[] rawFile = getRawFtpFile(interItem);
 		
 		if(rawFile == null || rawFile.length == 0) {

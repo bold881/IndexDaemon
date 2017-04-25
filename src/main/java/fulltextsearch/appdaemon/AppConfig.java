@@ -25,6 +25,7 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import fulltextsearch.dao.DBHelperConfigTable;
 import fulltextsearch.dao.DBHelperKeyTable;
+import fulltextsearch.data.AESProgram;
 import fulltextsearch.getjobs.GetJobsWorker;
 import fulltextsearch.pojos.ConfigCollection;
 import fulltextsearch.pojos.InterItem;
@@ -32,7 +33,7 @@ import fulltextsearch.pojos.KeyTable;
 
 public class AppConfig {
 	
-	private static final String propertiesFile = "src/main/resources/plmfulltextservice.properties";
+	private static String propertiesFile = "src/main/resources/plmfulltextservice.properties";
 	
 	private static String connectionUrl = "jdbc:sqlserver://10.115.0.161:1433";
 	
@@ -67,16 +68,16 @@ public class AppConfig {
 	private static int indexManageAmout = 1;
 	
 	// FTP client user name
-	private static String ftpUsername = "admin";
+	public static String ftpUsername = "admin";
 	
 	// FTP client user password
-	private static String ftpPassword = "admin";
+	public static String ftpPassword = "admin";
 	
 	// FTP server address
-	private static String ftpAddress = "10.115.0.161";
+	public static String ftpAddress = "10.115.0.161";
 	
 	// FTP server port
-	private static int ftpAddressPort = 21;
+	public static int ftpAddressPort = 21;
 	
 	// FTP documents directory path
 	private static String ftpDocumentsDir = "/DE_DOCUMENTS/";
@@ -125,6 +126,10 @@ public class AppConfig {
 	
 	
 	
+	public static void setPropertiesFile(String propertiesFile) {
+		AppConfig.propertiesFile = propertiesFile;
+	}
+
 	public static Long getMaxDbId() {
 		return maxDbId;
 	}
@@ -313,6 +318,9 @@ public class AppConfig {
 			startDocAttachProcess = configCollection.isStartDocProcess(); 
 		}
 		
+		// get FTP access 
+		config.getFtpConfiguration();
+		
 		loadConfiguration();
 	}
 	
@@ -359,9 +367,15 @@ public class AppConfig {
 			FileInputStream fileInputStream = new FileInputStream(propertiesFile);
 			properties.load(fileInputStream);
 			fileInputStream.close();
+			
 			connectionUrl = properties.getProperty("connectionUrl");
+			connectionUrl = "jdbc:sqlserver://"+connectionUrl;
+			
 			userName = properties.getProperty("userName");
+			
 			password = properties.getProperty("password");
+			password = AESProgram.strDecrypt(password);
+			
 			databaseName = properties.getProperty("databaseName");
 			maxResultCount = 
 					Integer.parseInt(properties.getProperty("maxResultCount"));
@@ -376,10 +390,6 @@ public class AppConfig {
 					Integer.parseInt(properties.getProperty("docProcessorAmount"));
 			indexManageAmout = 
 					Integer.parseInt(properties.getProperty("indexManageAmout"));
-			ftpUsername = properties.getProperty("ftpUsername");
-			ftpPassword = properties.getProperty("ftpPassword");
-			ftpAddress = properties.getProperty("ftpAddress");
-			ftpAddressPort = Integer.parseInt(properties.getProperty("ftpAddressPort"));
 			ftpDocumentsDir = properties.getProperty("ftpDocumentsDir");
 			esClusterName = properties.getProperty("esClusterName");
 			esServerIPAddr = properties.getProperty("esServerIPAddr");
