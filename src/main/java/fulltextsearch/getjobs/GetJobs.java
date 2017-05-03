@@ -28,10 +28,10 @@ public class GetJobs implements Runnable {
 					GetJobsWorker workerNew = new GetJobsWorker();
 					AppConfig.getJobsWorkerThreads.add(workerNew);
 					AppConfig.getJobsWorkerThreads.remove(worker);
-					System.out.println("ProcessDoc: " + worker.getName() + " stopped and restarted.");
+					System.out.println("GetJobs: " + worker.getName() + " stopped and restarted.");
 					break;
 				} else {
-					System.out.println("ProcessDoc: " + worker.getName() + " is running.");
+					//System.out.println("GetJobs: " + worker.getName() + " is running.");
 				}
 			}
 			

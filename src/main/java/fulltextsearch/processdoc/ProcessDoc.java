@@ -28,7 +28,7 @@ public class ProcessDoc implements Runnable {
 					badThreads.add(worker);
 					System.out.println("ProcessDoc: " + worker.getName() + " stopped.");
 				} else {
-					System.out.println("ProcessDoc: " + worker.getName() + " is running.");
+					//System.out.println("ProcessDoc: " + worker.getName() + " is running.");
 				}
 			}
 			
@@ -51,10 +51,14 @@ public class ProcessDoc implements Runnable {
 				}
 			}
 			
-			
-			System.out.println("Clean Queue Size: " + MultiThreadData.getItemQueue().size());
-			System.out.println("Raw Queue Size: " + MultiThreadData.getRawItemQueue().size());
-					
+			int queueSize = MultiThreadData.getItemQueue().size();
+			if(queueSize > 0) {
+				System.out.println("Clean Queue Size: " + queueSize);
+			}
+			queueSize = MultiThreadData.getRawItemQueue().size();
+			if(queueSize > 0) {
+				System.out.println("Raw Queue Size: " + queueSize);
+			}
 			try {
 				Thread.sleep(AppConfig.getCheckerSleepDuration());
 			} catch (InterruptedException e) {

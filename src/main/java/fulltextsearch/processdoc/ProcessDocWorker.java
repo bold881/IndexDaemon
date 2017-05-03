@@ -79,15 +79,7 @@ public class ProcessDocWorker implements Runnable {
 			} else {
 				// suspend when dequeued null
 				hasTasks = false;
-				synchronized (this) {
-					while(!hasTasks) {
-						try {
-							wait();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
+				this.thread.suspend();
 			}
 		}
 	}
@@ -113,6 +105,6 @@ public class ProcessDocWorker implements Runnable {
 	
 	public void workerResume() {
 		this.hasTasks = true;
-		this.notify();
+		this.thread.resume();
 	}
 }

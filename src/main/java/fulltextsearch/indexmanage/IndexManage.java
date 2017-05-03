@@ -33,8 +33,8 @@ public class IndexManage implements Runnable {
 					System.out.println(
 							"IndexManage: " + worker.getName() + " stopped.");
 				} else {
-					System.out.println(
-							"IndexManage: " + worker.getName() + " is running.");
+//					System.out.println(
+//							"IndexManage: " + worker.getName() + " is running.");
 				}
 			}
 			
@@ -49,8 +49,10 @@ public class IndexManage implements Runnable {
 				System.out.println("IndexManage: " + workerNew.getName() + " added.");
 			}
 			
-			System.out.println("Clean Queue Size: " + MultiThreadData.getItemQueue().size());
-			
+			int queueSize = MultiThreadData.getItemQueue().size();
+			if(queueSize > 0) {
+				System.out.println("Clean Queue Size: " + queueSize);
+			}
 			
 			if(!AppConfig.saveLastIndexedtoFile()) {
 				System.out.println("Save index count to file failed");

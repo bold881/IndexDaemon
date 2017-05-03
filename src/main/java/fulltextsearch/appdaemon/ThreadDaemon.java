@@ -59,7 +59,7 @@ public class ThreadDaemon implements Runnable {
 						e.printStackTrace();
 					}	
 				} else {
-					System.out.println(runnable.getName() + " is running ...");
+					//System.out.println(runnable.getName() + " is running ...");
 				}
 			}
 			
