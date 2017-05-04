@@ -318,10 +318,11 @@ public class AppConfig {
 			startDocAttachProcess = configCollection.isStartDocProcess(); 
 		}
 		
-		// get FTP access 
-		config.getFtpConfiguration();
 		
 		loadConfiguration();
+		
+		// get FTP access 
+		config.getFtpConfiguration();
 	}
 	
 	@SuppressWarnings({ "resource", "unchecked" })

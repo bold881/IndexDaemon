@@ -56,6 +56,7 @@ public class DBHelperConfigTable extends DBHelper {
 		
 		try {
 			rs.next(); 
+			
 			AppConfig.ftpAddress = rs.getString(1);
 			AppConfig.ftpUsername = rs.getString(2);
 			String ftpPassword = rs.getString(3);
